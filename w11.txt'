@@ -1,0 +1,485 @@
+# 🛠️ CrimeTrake Setup Guide — Windows 11
+
+Complete step-by-step setup instructions for CrimeTrake on **Windows 11**.
+
+---
+
+## 📋 Table of Contents
+1. [Prerequisites](#prerequisites)
+2. [Local Development Setup](#local-development-setup)
+3. [Configuration](#configuration)
+4. [Database Setup](#database-setup)
+5. [Running the Application](#running-the-application)
+6. [Creating Sample Data](#creating-sample-data)
+7. [Setting up External Services](#setting-up-external-services)
+8. [Production Deployment](#production-deployment)
+9. [Troubleshooting](#troubleshooting)
+
+---
+
+## 📦 Prerequisites
+
+### Required Software
+
+| Software | Download Link | Notes |
+|----------|--------------|-------|
+| Python 3.10+ | [python.org](https://www.python.org/downloads/) | ✅ Check "Add Python to PATH" during install |
+| Git | [git-scm.com](https://git-scm.com/) | Use default settings |
+| VS Code (recommended) | [code.visualstudio.com](https://code.visualstudio.com/) | Optional but recommended |
+
+### Optional (For Face Recognition)
+- **CMake** — Required for `dlib`
+- **Visual Studio Build Tools** — Required to compile `dlib` on Windows
+
+### Verify Installations
+Open **Command Prompt** or **PowerShell** and run:
+```powershell
+python --version    # Should be 3.10 or higher
+pip --version
+git --version
+```
+
+> 💡 **Tip**: Use **Windows Terminal** (built into Windows 11) for a better experience.
+
+---
+
+## 🚀 Local Development Setup
+
+### Step 1: Clone the Repository
+Open **PowerShell** or **Windows Terminal** and run:
+```powershell
+git clone https://github.com/yourusername/crimetrake.git
+cd crimetrake_project
+```
+
+### Step 2: Create Virtual Environment
+```powershell
+# Create virtual environment
+python -m venv venv
+
+# Activate virtual environment
+venv\Scripts\activate
+```
+
+You should now see `(venv)` at the start of your terminal prompt.
+
+> ⚠️ **If activation is blocked by PowerShell**, run this first:
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
+> Then re-run `venv\Scripts\activate`.
+
+### Step 3: Install Dependencies
+
+#### Basic Installation (Without Face Recognition)
+```powershell
+pip install Django==4.2.7
+pip install pillow==10.1.0
+pip install scikit-learn==1.3.2
+pip install pandas==2.1.3
+pip install numpy==1.26.2
+```
+
+#### Full Installation (With Face Recognition)
+
+> ⚠️ Installing `dlib` on Windows requires extra steps. Follow carefully.
+
+**Step A — Install Visual Studio Build Tools:**
+1. Download from [Visual Studio Build Tools](https://visualstudio.microsoft.com/visual-cpp-build-tools/)
+2. Run the installer
+3. Select **"Desktop development with C++"**
+4. Click Install
+
+**Step B — Install CMake:**
+1. Download from [cmake.org](https://cmake.org/download/)
+2. Run the installer
+3. ✅ Select **"Add CMake to system PATH for all users"**
+
+**Step C — Install dlib using a pre-built wheel (Easiest method):**
+1. Go to [https://github.com/sachadee/Dlib](https://github.com/sachadee/Dlib)
+2. Download the `.whl` file matching your Python version (e.g., `dlib-19.24.1-cp311-cp311-win_amd64.whl` for Python 3.11)
+3. Install it:
+```powershell
+pip install path\to\downloaded\dlib-xx-win_amd64.whl
+```
+
+**Step D — Install remaining requirements:**
+```powershell
+pip install -r requirements.txt
+```
+
+> ℹ️ If face recognition installation fails, the app will still work — you'll just see a warning message on startup.
+
+---
+
+## ⚙️ Configuration
+
+### Step 1: Create Environment File
+
+Copy the example file using PowerShell:
+```powershell
+copy .env.example .env
+```
+
+Then open `.env` in Notepad or VS Code:
+```powershell
+notepad .env
+# or
+code .env
+```
+
+### Step 2: Configure `.env` File
+```env
+# Django Settings
+SECRET_KEY=your-secret-key-here-change-this-in-production
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Database (For PostgreSQL in production)
+DB_NAME=crimetrake_db
+DB_USER=postgres
+DB_PASSWORD=your_password
+DB_HOST=localhost
+DB_PORT=5432
+
+# Email Configuration (Gmail SMTP)
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=your-gmail-app-password
+
+# Google Maps API
+GOOGLE_MAPS_API_KEY=your-google-maps-api-key
+
+# Environment
+DJANGO_ENV=development
+```
+
+### Step 3: Generate a Secret Key
+```powershell
+python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"
+```
+Copy the output and paste it as the value of `SECRET_KEY` in your `.env` file.
+
+---
+
+## 🗄️ Database Setup
+
+### Using SQLite (Development — Default)
+No extra setup needed. Just run:
+```powershell
+python manage.py makemigrations
+python manage.py migrate
+```
+Django will automatically create a `db.sqlite3` file in your project folder.
+
+---
+
+### Using PostgreSQL (Production — Recommended)
+
+#### Install PostgreSQL on Windows 11
+1. Download the installer from [postgresql.org](https://www.postgresql.org/download/windows/)
+2. Run the installer (use default settings)
+3. Set a password for the `postgres` user — **remember this password**
+4. Complete the installation
+
+#### Create the Database
+Open **pgAdmin** (installed with PostgreSQL) or use **SQL Shell (psql)**:
+```sql
+CREATE DATABASE crimetrake_db;
+CREATE USER crimetrake_user WITH PASSWORD 'your_password';
+GRANT ALL PRIVILEGES ON DATABASE crimetrake_db TO crimetrake_user;
+```
+
+#### Update `settings.py`
+```python
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'crimetrake_db',
+        'USER': 'crimetrake_user',
+        'PASSWORD': 'your_password',
+        'HOST': 'localhost',
+        'PORT': '5432',
+    }
+}
+```
+
+#### Install psycopg2
+```powershell
+pip install psycopg2-binary
+```
+
+#### Run Migrations
+```powershell
+python manage.py makemigrations
+python manage.py migrate
+```
+
+---
+
+## 👤 Create Superuser (Admin Account)
+
+```powershell
+python manage.py createsuperuser
+```
+
+Fill in the prompts:
+- **Username**: `admin`
+- **Email**: `admin@crimetrake.com`
+- **Password**: *(choose a strong password)*
+
+---
+
+## 🏃 Running the Application
+
+### Start Development Server
+```powershell
+python manage.py runserver
+```
+
+Open your browser and go to:
+- **Frontend**: http://localhost:8000
+- **Admin Panel**: http://localhost:8000/admin
+
+### Running on a Custom Port
+```powershell
+python manage.py runserver 8080
+```
+
+### Running on Your Local Network (accessible from other devices on the same Wi-Fi)
+```powershell
+python manage.py runserver 0.0.0.0:8000
+```
+Then access it from another device using your PC's local IP (e.g., `http://192.168.1.x:8000`).
+
+> 💡 Find your local IP by running `ipconfig` in PowerShell and looking for **IPv4 Address**.
+
+---
+
+## 📊 Creating Sample Data
+
+### Option 1: Using Django Shell
+```powershell
+python manage.py shell
+```
+
+```python
+from accounts.models import User
+from crimes.models import Crime
+from datetime import datetime
+
+# Create a citizen user
+citizen = User.objects.create_user(
+    username='john_doe',
+    email='john@example.com',
+    password='password123',
+    role='CITIZEN',
+    first_name='John',
+    last_name='Doe',
+    phone='1234567890',
+    address='123 Main St'
+)
+
+# Create a police officer
+police = User.objects.create_user(
+    username='officer_smith',
+    email='smith@police.com',
+    password='password123',
+    role='POLICE',
+    first_name='Sarah',
+    last_name='Smith',
+    badge_number='P1234',
+    department='Central Police Station',
+    is_verified=True
+)
+
+# Create a sample crime report
+crime = Crime.objects.create(
+    reporter=citizen,
+    crime_type='THEFT',
+    title='Laptop Stolen from Car',
+    description='My laptop was stolen from my parked car near the mall.',
+    location='City Mall Parking Lot',
+    latitude=28.6139,
+    longitude=77.2090,
+    incident_date=datetime.now(),
+    status='FILED',
+    priority='MEDIUM'
+)
+
+print(f"Created crime: {crime.case_id}")
+```
+
+### Option 2: Using Fixtures
+```powershell
+python manage.py loaddata sample_data.json
+```
+
+---
+
+## 🌐 Setting up External Services
+
+### 1. Google Maps API (Free)
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/)
+2. Create a new project
+3. Enable **Maps JavaScript API** and **Geocoding API**
+4. Go to **Credentials** → **Create Credentials** → **API Key**
+5. Copy the key and add it to `.env`:
+```env
+GOOGLE_MAPS_API_KEY=AIzaSy...your-key-here
+```
+
+### 2. Gmail SMTP (Free)
+
+1. Go to your [Google Account](https://myaccount.google.com/)
+2. **Security** → **2-Step Verification** → Enable it
+3. **Security** → **App passwords** → Generate a new password
+4. Copy the password and add to `.env`:
+```env
+EMAIL_USER=your-email@gmail.com
+EMAIL_PASSWORD=generated-app-password
+```
+
+#### Test Email from Django Shell
+```python
+python manage.py shell
+
+from django.core.mail import send_mail
+send_mail(
+    'Test Email',
+    'This is a test email from CrimeTrake',
+    'your-email@gmail.com',
+    ['recipient@example.com'],
+)
+```
+
+---
+
+## 🚀 Production Deployment
+
+### Deploy to Render (Free)
+
+1. Push your project to a GitHub repository
+
+2. **Prepare for production** — update `settings.py`:
+```python
+DEBUG = False
+ALLOWED_HOSTS = ['your-app.onrender.com']
+
+MIDDLEWARE = [
+    # ... other middleware
+    'whitenoise.middleware.WhiteNoiseMiddleware',
+]
+
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+```
+
+3. Add to `requirements.txt`:
+```
+gunicorn==21.2.0
+whitenoise==6.6.0
+psycopg2-binary==2.9.9
+```
+
+4. Create a file named `Procfile` (no extension) in the project root:
+```
+web: gunicorn crimetrake.wsgi --log-file -
+```
+
+5. Go to [render.com](https://render.com) → **New +** → **Web Service**
+6. Connect your GitHub repo and configure:
+   - **Environment**: Python 3
+   - **Build Command**: `pip install -r requirements.txt`
+   - **Start Command**: `gunicorn crimetrake.wsgi:application`
+7. Add all environment variables from your `.env` file
+8. Click **Create Web Service**
+
+---
+
+## 🐛 Troubleshooting (Windows 11)
+
+### ❌ "No module named 'django'"
+Virtual environment is not activated. Run:
+```powershell
+venv\Scripts\activate
+pip install Django==4.2.7
+```
+
+### ❌ PowerShell blocks script execution
+```powershell
+Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+```
+
+### ❌ Pillow not installed (ImageField error)
+```powershell
+python -m pip install Pillow
+```
+
+### ❌ dlib installation failed
+Use the pre-built wheel method described in [Step 3](#step-3-install-dependencies). The app works without face recognition if needed.
+
+### ❌ "CSRF verification failed"
+Clear your browser cache and cookies, then try again.
+
+### ❌ Static files not loading
+```powershell
+python manage.py collectstatic
+```
+
+### ❌ Database migration errors
+```powershell
+# Delete all migration files (keep __init__.py)
+Get-ChildItem -Recurse -Filter "*.py" -Path "*/migrations" | Where-Object { $_.Name -ne "__init__.py" } | Remove-Item
+
+# Recreate migrations
+python manage.py makemigrations
+python manage.py migrate
+```
+
+### ❌ Port 8000 already in use
+```powershell
+# Find the process using port 8000
+netstat -ano | findstr :8000
+
+# Kill the process (replace <PID> with the actual number)
+taskkill /PID <PID> /F
+```
+
+---
+
+## ✅ Setup Verification Checklist
+
+- [ ] Python 3.10+ installed and added to PATH
+- [ ] Virtual environment created and activated
+- [ ] All packages installed (`pip list` to verify)
+- [ ] `.env` file configured
+- [ ] Database migrations completed
+- [ ] Superuser created
+- [ ] Development server running at http://localhost:8000
+- [ ] Admin panel accessible at http://localhost:8000/admin
+- [ ] Can register a new user
+- [ ] Can report a crime
+- [ ] Email notifications working (if configured)
+
+---
+
+## 📚 Additional Resources
+
+- [Django Documentation](https://docs.djangoproject.com/)
+- [Python on Windows Guide](https://docs.python.org/3/using/windows.html)
+- [PostgreSQL Windows Installer](https://www.postgresql.org/download/windows/)
+- [Google Maps API Docs](https://developers.google.com/maps)
+
+---
+
+## 📞 Need Help?
+
+1. Check this troubleshooting guide
+2. Search [Stack Overflow](https://stackoverflow.com/)
+3. Open a [GitHub Issue](https://github.com/yourusername/crimetrake/issues)
+4. Contact: your.email@example.com
+
+---
+
+**Happy Coding on Windows 11! 🚀**

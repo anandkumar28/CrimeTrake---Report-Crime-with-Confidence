@@ -1,0 +1,320 @@
+CrimeTrake Project Structure
+============================
+
+crimetrake_project/
+│
+├── manage.py                      # Django management script
+├── README.md                      # Project documentation
+├── SETUP.md                       # Setup instructions
+├── LICENSE                        # MIT License
+├── requirements.txt               # Python dependencies
+├── .env.example                   # Environment variables template
+├── .gitignore                     # Git ignore file
+├── start.sh                       # Quick start script (Linux/Mac)
+├── start.bat                      # Quick start script (Windows)
+│
+├── crimetrake/                    # Main Django project
+│   ├── __init__.py
+│   ├── settings.py                # Project settings
+│   ├── urls.py                    # URL configuration
+│   ├── wsgi.py                    # WSGI configuration
+│   └── asgi.py                    # ASGI configuration (auto-generated)
+│
+├── accounts/                      # User management app
+│   ├── __init__.py
+│   ├── admin.py                   # Admin configuration
+│   ├── apps.py                    # App configuration
+│   ├── models.py                  # User model (CITIZEN/POLICE/ADMIN)
+│   ├── views.py                   # Authentication views
+│   ├── forms.py                   # Registration & login forms
+│   ├── urls.py                    # Account URLs
+│   ├── migrations/                # Database migrations
+│   └── templates/accounts/        # Account templates
+│       ├── login.html
+│       ├── register_citizen.html
+│       ├── register_police.html
+│       └── profile.html
+│
+├── crimes/                        # Crime reporting app
+│   ├── __init__.py
+│   ├── admin.py                   # Admin configuration
+│   ├── apps.py                    # App configuration
+│   ├── models.py                  # Crime, Evidence, Suspect models
+│   ├── views.py                   # Crime management views
+│   ├── forms.py                   # Crime forms
+│   ├── urls.py                    # Crime URLs
+│   ├── migrations/                # Database migrations
+│   └── templates/crimes/          # Crime templates
+│       ├── report_crime.html
+│       ├── case_detail.html
+│       ├── my_reports.html
+│       ├── upload_evidence.html
+│       ├── update_case.html
+│       └── add_suspect.html
+│
+├── dashboard/                     # Dashboard app
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── views.py                   # Dashboard views (Citizen/Police/Admin)
+│   ├── urls.py                    # Dashboard URLs
+│   └── templates/dashboard/       # Dashboard templates
+│       ├── citizen_dashboard.html
+│       ├── police_dashboard.html
+│       ├── admin_dashboard.html
+│       ├── crime_map.html
+│       └── analytics.html
+│
+├── ml_engine/                     # Machine Learning engine
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── classifier.py              # Crime classification (NLP)
+│   ├── face_recognition_engine.py # Face detection & matching
+│   └── models/                    # Trained ML models (created at runtime)
+│       └── .gitkeep
+│
+├── templates/                     # Global templates
+│   ├── base.html                  # Base template
+│   └── home.html                  # Homepage
+│
+├── static/                        # Static files
+│   ├── css/
+│   │   └── style.css              # Main stylesheet
+│   ├── js/
+│   │   └── main.js                # JavaScript
+│   └── img/                       # Images
+│
+├── media/                         # User uploads
+│   ├── evidence/                  # Evidence files
+│   ├── profiles/                  # Profile pictures
+│   └── suspects/                  # Suspect photos
+│
+└── db.sqlite3                     # SQLite database (created after setup)
+
+
+KEY FILES EXPLAINED
+===================
+
+1. manage.py
+   - Django's command-line utility
+   - Used for: runserver, makemigrations, migrate, createsuperuser, etc.
+
+2. settings.py
+   - All project configuration
+   - Database, apps, middleware, static files, email, etc.
+
+3. urls.py (main)
+   - Root URL configuration
+   - Maps URLs to apps
+
+4. models.py (in each app)
+   - Database models (tables)
+   - User, Crime, Evidence, Suspect, etc.
+
+5. views.py (in each app)
+   - Request handling logic
+   - Processes forms, queries database, renders templates
+
+6. forms.py (in each app)
+   - Form definitions
+   - Validation logic
+
+7. templates/
+   - HTML files
+   - Rendered by views
+
+8. static/
+   - CSS, JavaScript, images
+   - Served directly to browser
+
+9. media/
+   - User-uploaded files
+   - Evidence, photos, documents
+
+
+DATABASE MODELS
+===============
+
+User (accounts/models.py)
+- Extends Django's AbstractUser
+- Fields: username, email, role (CITIZEN/POLICE/ADMIN), phone, address, etc.
+
+Crime (crimes/models.py)
+- case_id, reporter, crime_type, title, description
+- location, latitude, longitude
+- status, priority, assigned_officer
+- ai_predicted_category, ai_confidence
+
+Evidence (crimes/models.py)
+- crime (FK), evidence_type, file
+- faces_detected, face_encodings
+
+Suspect (crimes/models.py)
+- crime (FK), name, description, photo
+- face_encoding
+
+CaseUpdate (crimes/models.py)
+- crime (FK), old_status, new_status
+- notes, updated_by
+
+
+USER ROLES
+==========
+
+1. CITIZEN
+   - Report crimes
+   - Upload evidence
+   - Track case status
+   - View own reports
+
+2. POLICE
+   - View assigned cases
+   - Update case status
+   - Add suspects
+   - Upload evidence
+   - Access crime map & analytics
+
+3. ADMIN
+   - Full system access
+   - Verify police officers
+   - Assign cases
+   - View all statistics
+   - Manage users
+
+
+WORKFLOWS
+=========
+
+1. Crime Reporting Flow
+   Citizen → Register → Login → Report Crime → Upload Evidence → Track Status
+
+2. Investigation Flow
+   Police → Login → View Cases → Update Status → Add Suspects → Close Case
+
+3. Admin Flow
+   Admin → Login → Verify Police → View Analytics → Assign Cases
+
+
+IMPORTANT DIRECTORIES
+=====================
+
+/migrations/
+- Auto-generated database migration files
+- Track database schema changes
+
+/models/ (in ml_engine)
+- Stores trained ML models
+- crime_classifier.pkl, vectorizer.pkl
+- Created when train_model() is run
+
+/__pycache__/
+- Python bytecode cache
+- Auto-generated, can be deleted
+
+/staticfiles/
+- Collected static files for production
+- Created by 'collectstatic' command
+
+
+CONFIGURATION FILES
+===================
+
+.env
+- Environment variables
+- SECRET_KEY, database credentials, API keys
+- NOT committed to Git (in .gitignore)
+
+.env.example
+- Template for .env
+- Shows what variables are needed
+
+.gitignore
+- Files to exclude from Git
+- .env, __pycache__, db.sqlite3, media/*, etc.
+
+requirements.txt
+- Python package dependencies
+- Used by: pip install -r requirements.txt
+
+
+DEPLOYMENT CHECKLIST
+====================
+
+□ Set DEBUG=False in settings.py
+□ Update ALLOWED_HOSTS
+□ Use strong SECRET_KEY
+□ Set up PostgreSQL database
+□ Configure email settings
+□ Add Google Maps API key
+□ Run collectstatic
+□ Set up gunicorn + whitenoise
+□ Configure environment variables on hosting platform
+
+
+TESTING
+=======
+
+Run tests:
+    python manage.py test
+
+Create test data:
+    python manage.py shell
+    (then create objects manually)
+
+
+COMMON COMMANDS
+===============
+
+Start server:
+    python manage.py runserver
+
+Create migrations:
+    python manage.py makemigrations
+
+Apply migrations:
+    python manage.py migrate
+
+Create superuser:
+    python manage.py createsuperuser
+
+Collect static files:
+    python manage.py collectstatic
+
+Django shell:
+    python manage.py shell
+
+Database shell:
+    python manage.py dbshell
+
+
+TECH STACK SUMMARY
+==================
+
+Backend:
+- Django 4.2 (Python web framework)
+- SQLite (Dev) / PostgreSQL (Prod)
+
+Machine Learning:
+- scikit-learn (Classification)
+- OpenCV + face_recognition (Face detection)
+- Pandas & NumPy (Data processing)
+
+Frontend:
+- HTML5, CSS3, JavaScript
+- Font Awesome icons
+- Google Fonts (Syne, DM Sans)
+
+APIs:
+- Google Maps JavaScript API
+- Gmail SMTP
+
+Deployment:
+- Gunicorn (WSGI server)
+- WhiteNoise (Static files)
+- Render / Railway (Hosting)
+
+
+For more information, see README.md and SETUP.md

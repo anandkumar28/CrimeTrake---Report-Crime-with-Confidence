@@ -1,0 +1,180 @@
+{% extends 'base.html' %}
+
+{% block title %}Report Crime - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2><i class="fas fa-file-pen"></i> File a Crime Report</h2>
+                <p>Provide detailed information about the incident</p>
+            </div>
+            
+            <form method="post" id="crimeReportForm" class="crime-form">
+                {% csrf_token %}
+                
+                <div class="form-section">
+                    <h3>Crime Details</h3>
+                    
+                    <div class="form-group">
+                        <label>Crime Type *</label>
+                        {{ form.crime_type }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Title *</label>
+                        {{ form.title }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Description *</label>
+                        {{ form.description }}
+                    </div>
+                </div>
+                
+                <div class="form-section">
+                    <h3>Location Information</h3>
+                    
+                    <div class="form-group">
+                        <label>Location *</label>
+                        {{ form.location }}
+                        <button type="button" class="btn btn-secondary" onclick="getLocation()">
+                            <i class="fas fa-location-crosshairs"></i> Use Current Location
+                        </button>
+                    </div>
+                    
+                    {{ form.latitude }}
+                    {{ form.longitude }}
+                </div>
+                
+                <div class="form-section">
+                    <h3>Time & Additional Details</h3>
+                    
+                    <div class="form-group">
+                        <label>Incident Date & Time *</label>
+                        {{ form.incident_date }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Number of Witnesses</label>
+                        {{ form.witness_count }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Suspect Description</label>
+                        {{ form.suspect_description }}
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            {{ form.is_anonymous }}
+                            <span>Report Anonymously</span>
+                        </label>
+                    </div>
+                </div>
+                
+                {% if form.errors %}
+                    <div class="form-errors">
+                        {% for field, errors in form.errors.items %}
+                            <p><strong>{{ field }}:</strong> {{ errors|first }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i> Submit Report
+                    </button>
+                    <a href="{% url 'dashboard:citizen_dashboard' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-page {
+    padding: 3rem 0;
+    background: #F7FAFC;
+}
+
+.form-card {
+    background: white;
+    padding: 3rem;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-header {
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.form-section {
+    margin-bottom: 2rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid #E2E8F0;
+}
+
+.form-section:last-of-type {
+    border-bottom: none;
+}
+
+.form-section h3 {
+    margin-bottom: 1.5rem;
+    color: #2D3748;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #4A5568;
+}
+
+.checkbox-label {
+    display: flex !important;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+}
+
+.checkbox-label input {
+    width: auto !important;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 2rem;
+}
+</style>
+
+<script>
+function getLocation() {
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            document.getElementById('id_latitude').value = position.coords.latitude;
+            document.getElementById('id_longitude').value = position.coords.longitude;
+            
+            // Reverse geocode to get address (optional)
+            alert('Location captured: ' + position.coords.latitude + ', ' + position.coords.longitude);
+        }, function(error) {
+            alert('Error getting location: ' + error.message);
+        });
+    } else {
+        alert('Geolocation is not supported by this browser.');
+    }
+}
+</script>
+{% endblock %}

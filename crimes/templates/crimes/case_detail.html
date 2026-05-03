@@ -1,0 +1,268 @@
+{% extends 'base.html' %}
+
+{% block title %}Case {{ crime.case_id }} - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="case-detail-page">
+    <div class="container">
+        <div class="case-header">
+            <div>
+                <h1>{{ crime.title }}</h1>
+                <p class="case-id">Case ID: <strong>{{ crime.case_id }}</strong></p>
+            </div>
+            <div class="case-actions">
+                {% if user.is_police or user.is_admin_user %}
+                    <a href="{% url 'crimes:update_case' crime.case_id %}" class="btn btn-primary">
+                        <i class="fas fa-edit"></i> Update Case
+                    </a>
+                    <a href="{% url 'crimes:add_suspect' crime.case_id %}" class="btn btn-secondary">
+                        <i class="fas fa-user-secret"></i> Add Suspect
+                    </a>
+                {% endif %}
+                <a href="{% url 'crimes:upload_evidence' crime.case_id %}" class="btn btn-secondary">
+                    <i class="fas fa-upload"></i> Upload Evidence
+                </a>
+            </div>
+        </div>
+        
+        <!-- Status Badge -->
+        <div class="status-section">
+            <span class="status-badge status-{{ crime.status|lower }}">
+                {{ crime.get_status_display }}
+            </span>
+            <span class="priority-badge priority-{{ crime.priority|lower }}">
+                {{ crime.get_priority_display }} Priority
+            </span>
+        </div>
+        
+        <!-- Case Information -->
+        <div class="info-grid">
+            <div class="info-card">
+                <h3>Crime Information</h3>
+                <div class="info-row">
+                    <strong>Type:</strong>
+                    <span>{{ crime.get_crime_type_display }}</span>
+                </div>
+                <div class="info-row">
+                    <strong>Location:</strong>
+                    <span>{{ crime.location }}</span>
+                </div>
+                <div class="info-row">
+                    <strong>Incident Date:</strong>
+                    <span>{{ crime.incident_date|date:"F d, Y h:i A" }}</span>
+                </div>
+                <div class="info-row">
+                    <strong>Reported Date:</strong>
+                    <span>{{ crime.reported_date|date:"F d, Y h:i A" }}</span>
+                </div>
+                <div class="info-row">
+                    <strong>Witnesses:</strong>
+                    <span>{{ crime.witness_count }}</span>
+                </div>
+            </div>
+            
+            <div class="info-card">
+                <h3>Investigation Details</h3>
+                <div class="info-row">
+                    <strong>Reporter:</strong>
+                    <span>{% if crime.is_anonymous %}Anonymous{% else %}{{ crime.reporter.get_full_name }}{% endif %}</span>
+                </div>
+                <div class="info-row">
+                    <strong>Assigned Officer:</strong>
+                    <span>{% if crime.assigned_officer %}{{ crime.assigned_officer.get_full_name }}{% else %}Not Assigned{% endif %}</span>
+                </div>
+                {% if crime.ai_predicted_category %}
+                <div class="info-row">
+                    <strong>AI Prediction:</strong>
+                    <span>{{ crime.ai_predicted_category }} ({{ crime.ai_confidence|floatformat:2 }} confidence)</span>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Description -->
+        <div class="description-section">
+            <h3>Description</h3>
+            <p>{{ crime.description }}</p>
+        </div>
+        
+        {% if crime.suspect_description %}
+        <div class="description-section">
+            <h3>Suspect Description</h3>
+            <p>{{ crime.suspect_description }}</p>
+        </div>
+        {% endif %}
+        
+        <!-- Evidence -->
+        <div class="section">
+            <h3><i class="fas fa-paperclip"></i> Evidence ({{ evidence_list.count }})</h3>
+            {% if evidence_list %}
+                <div class="evidence-grid">
+                    {% for evidence in evidence_list %}
+                        <div class="evidence-card">
+                            <div class="evidence-type">
+                                <i class="fas fa-{{ evidence.evidence_type|lower }}"></i>
+                                {{ evidence.get_evidence_type_display }}
+                            </div>
+                            <p><strong>Uploaded by:</strong> {{ evidence.uploaded_by.username }}</p>
+                            <p><strong>Date:</strong> {{ evidence.uploaded_at|date:"M d, Y" }}</p>
+                            {% if evidence.description %}
+                                <p>{{ evidence.description }}</p>
+                            {% endif %}
+                            {% if evidence.faces_detected > 0 %}
+                                <p class="highlight">
+                                    <i class="fas fa-face-smile"></i> {{ evidence.faces_detected }} face(s) detected
+                                </p>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No evidence uploaded yet.</p>
+            {% endif %}
+        </div>
+        
+        <!-- Updates -->
+        <div class="section">
+            <h3><i class="fas fa-history"></i> Case Updates</h3>
+            {% if updates %}
+                <div class="timeline">
+                    {% for update in updates %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker"></div>
+                            <div class="timeline-content">
+                                <h4>Status changed: {{ update.old_status }} → {{ update.new_status }}</h4>
+                                <p>{{ update.notes }}</p>
+                                <small>Updated by {{ update.updated_by.get_full_name }} on {{ update.created_at|date:"F d, Y h:i A" }}</small>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p>No updates yet.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.case-detail-page {
+    padding: 3rem 0;
+    background: #F7FAFC;
+}
+
+.case-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 2rem;
+}
+
+.case-id {
+    color: #718096;
+    font-size: 1.125rem;
+}
+
+.case-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.status-section {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.status-badge, .priority-badge {
+    padding: 0.5rem 1.5rem;
+    border-radius: 20px;
+    font-weight: 600;
+}
+
+.status-filed { background: #FED7AA; color: #7C2D12; }
+.status-under_investigation { background: #BFDBFE; color: #1E3A8A; }
+.status-case_closed { background: #BBF7D0; color: #14532D; }
+
+.priority-high, .priority-critical {
+    background: #FEE2E2;
+    color: #991B1B;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    gap: 2rem;
+    margin-bottom: 2rem;
+}
+
+.info-card {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.description-section, .section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.evidence-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.evidence-card {
+    background: #F7FAFC;
+    padding: 1.5rem;
+    border-radius: 12px;
+    border-left: 4px solid var(--primary);
+}
+
+.timeline {
+    position: relative;
+    padding-left: 2rem;
+}
+
+.timeline-item {
+    position: relative;
+    padding-bottom: 2rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -2rem;
+    width: 12px;
+    height: 12px;
+    background: var(--primary);
+    border-radius: 50%;
+    border: 3px solid white;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 12px;
+    bottom: -12px;
+    width: 2px;
+    background: #E2E8F0;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+</style>
+{% endblock %}

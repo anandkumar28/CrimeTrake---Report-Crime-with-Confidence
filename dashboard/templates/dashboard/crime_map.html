@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+
+{% block title %}Crime Map - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="map-page">
+    <div class="container-fluid">
+        <div class="map-header">
+            <h1><i class="fas fa-map-marked-alt"></i> Crime Location Map</h1>
+            
+            <div class="map-filters">
+                <form method="get" class="filter-form">
+                    <select name="crime_type" class="form-control">
+                        <option value="">All Crime Types</option>
+                        {% for type_code, type_name in crime_types %}
+                            <option value="{{ type_code }}">{{ type_name }}</option>
+                        {% endfor %}
+                    </select>
+                    
+                    <select name="days" class="form-control">
+                        <option value="7">Last 7 days</option>
+                        <option value="30" selected>Last 30 days</option>
+                        <option value="90">Last 90 days</option>
+                        <option value="365">Last year</option>
+                    </select>
+                    
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-filter"></i> Apply Filters
+                    </button>
+                </form>
+            </div>
+        </div>
+        
+        <div class="map-container">
+            <div id="crime-map"></div>
+        </div>
+        
+        <div class="map-legend">
+            <h3>Legend</h3>
+            <div class="legend-items">
+                <div class="legend-item">
+                    <span class="marker marker-theft"></span>
+                    <span>Theft</span>
+                </div>
+                <div class="legend-item">
+                    <span class="marker marker-robbery"></span>
+                    <span>Robbery</span>
+                </div>
+                <div class="legend-item">
+                    <span class="marker marker-assault"></span>
+                    <span>Assault</span>
+                </div>
+                <div class="legend-item">
+                    <span class="marker marker-cybercrime"></span>
+                    <span>Cybercrime</span>
+                </div>
+                <div class="legend-item">
+                    <span class="marker marker-other"></span>
+                    <span>Other</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.map-page {
+    padding: 2rem 0;
+}
+
+.container-fluid {
+    max-width: 100%;
+    padding: 0 2rem;
+}
+
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.filter-form {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.filter-form select {
+    min-width: 200px;
+}
+
+.map-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow: hidden;
+    margin-bottom: 2rem;
+}
+
+#crime-map {
+    width: 100%;
+    height: 600px;
+}
+
+.map-legend {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.legend-items {
+    display: flex;
+    gap: 2rem;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.marker {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.marker-theft { background: #3B82F6; }
+.marker-robbery { background: #EF4444; }
+.marker-assault { background: #F59E0B; }
+.marker-cybercrime { background: #8B5CF6; }
+.marker-other { background: #6B7280; }
+
+@media (max-width: 768px) {
+    .map-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .filter-form {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .filter-form select {
+        width: 100%;
+    }
+}
+</style>
+
+<script>
+// Store crime data for map
+window.crimeData = {{ crime_data|safe }};
+
+// Initialize map when Google Maps API is loaded
+function initMap() {
+    // Default center (you can change this)
+    const defaultCenter = { lat: 28.6139, lng: 77.2090 }; // New Delhi
+    
+    // Create map
+    const map = new google.maps.Map(document.getElementById('crime-map'), {
+        zoom: 12,
+        center: defaultCenter,
+        styles: [
+            {
+                featureType: 'poi',
+                elementType: 'labels',
+                stylers: [{ visibility: 'off' }]
+            }
+        ]
+    });
+    
+    // Define marker colors by crime type
+    const markerColors = {
+        'THEFT': '#3B82F6',
+        'ROBBERY': '#EF4444',
+        'ASSAULT': '#F59E0B',
+        'CYBERCRIME': '#8B5CF6',
+        'DEFAULT': '#6B7280'
+    };
+    
+    // Add markers for each crime
+    window.crimeData.forEach(crime => {
+        const position = { lat: crime.latitude, lng: crime.longitude };
+        
+        // Get marker color based on crime type
+        const color = markerColors[crime.crime_type] || markerColors.DEFAULT;
+        
+        // Create marker
+        const marker = new google.maps.Marker({
+            position: position,
+            map: map,
+            title: crime.title,
+            icon: {
+                path: google.maps.SymbolPath.CIRCLE,
+                scale: 10,
+                fillColor: color,
+                fillOpacity: 0.8,
+                strokeColor: '#fff',
+                strokeWeight: 2
+            }
+        });
+        
+        // Create info window
+        const infoWindow = new google.maps.InfoWindow({
+            content: `
+                <div style="padding: 10px; max-width: 250px;">
+                    <h4 style="margin: 0 0 8px 0; color: #2D3748;">${crime.case_id}</h4>
+                    <p style="margin: 0 0 4px 0; font-weight: 600;">${crime.title}</p>
+                    <p style="margin: 0 0 4px 0; color: #718096;">Type: ${crime.crime_type}</p>
+                    <p style="margin: 0 0 4px 0; color: #718096;">Status: ${crime.status}</p>
+                    <p style="margin: 0; color: #718096; font-size: 0.875rem;">${crime.date}</p>
+                </div>
+            `
+        });
+        
+        // Add click listener to show info
+        marker.addListener('click', () => {
+            infoWindow.open(map, marker);
+        });
+    });
+    
+    // Auto-center map if crimes exist
+    if (window.crimeData.length > 0) {
+        const bounds = new google.maps.LatLngBounds();
+        window.crimeData.forEach(crime => {
+            bounds.extend({ lat: crime.latitude, lng: crime.longitude });
+        });
+        map.fitBounds(bounds);
+    }
+}
+</script>
+
+<!-- Load Google Maps API -->
+<script src="https://maps.googleapis.com/maps/api/js?key={{ GOOGLE_MAPS_API_KEY }}&callback=initMap" async defer></script>
+
+{% endblock %}

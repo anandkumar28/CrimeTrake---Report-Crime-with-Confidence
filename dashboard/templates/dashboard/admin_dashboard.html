@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="container">
+        <h1>Admin Dashboard</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_crimes }}</h3>
+                    <p>Total Crimes</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_users }}</h3>
+                    <p>Total Users</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_police }}</h3>
+                    <p>Police Officers</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                    <i class="fas fa-user-check"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_citizens }}</h3>
+                    <p>Citizens</p>
+                </div>
+            </div>
+        </div>
+        
+        {% if pending_police > 0 %}
+        <div class="alert alert-warning" style="margin: 2rem 0;">
+            <i class="fas fa-exclamation-triangle"></i>
+            <strong>{{ pending_police }}</strong> police officer(s) awaiting verification.
+            <a href="/admin/accounts/user/?role=POLICE&is_verified=False">Review now</a>
+        </div>
+        {% endif %}
+        
+        <div class="dashboard-section">
+            <h2>Recent Crime Reports</h2>
+            <div class="crimes-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Case ID</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Reporter</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for crime in recent_crimes %}
+                            <tr>
+                                <td><strong>{{ crime.case_id }}</strong></td>
+                                <td>{{ crime.title }}</td>
+                                <td>{{ crime.get_crime_type_display }}</td>
+                                <td><span class="badge badge-{{ crime.status|lower }}">{{ crime.get_status_display }}</span></td>
+                                <td>{% if crime.is_anonymous %}Anonymous{% else %}{{ crime.reporter.username }}{% endif %}</td>
+                                <td>{{ crime.created_at|date:"M d, Y" }}</td>
+                                <td>
+                                    <a href="{% url 'crimes:case_detail' crime.case_id %}" class="btn-small">View</a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

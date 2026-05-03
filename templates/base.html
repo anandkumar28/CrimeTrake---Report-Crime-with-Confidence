@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CrimeTrake{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <a href="{% url 'home' %}">
+                    <i class="fas fa-shield-halved"></i>
+                    <span>CrimeTrake</span>
+                </a>
+            </div>
+            
+            <div class="nav-menu">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard:redirect_dashboard' %}" class="nav-link">
+                        <i class="fas fa-dashboard"></i> Dashboard
+                    </a>
+                    
+                    {% if user.is_citizen %}
+                        <a href="{% url 'crimes:report_crime' %}" class="nav-link">
+                            <i class="fas fa-file-pen"></i> Report Crime
+                        </a>
+                        <a href="{% url 'crimes:my_reports' %}" class="nav-link">
+                            <i class="fas fa-folder-open"></i> My Reports
+                        </a>
+                    {% endif %}
+                    
+                    {% if user.is_police or user.is_admin_user %}
+                        <a href="{% url 'dashboard:crime_map' %}" class="nav-link">
+                            <i class="fas fa-map-marked-alt"></i> Crime Map
+                        </a>
+                        <a href="{% url 'dashboard:analytics' %}" class="nav-link">
+                            <i class="fas fa-chart-line"></i> Analytics
+                        </a>
+                    {% endif %}
+                    
+                    <div class="nav-dropdown">
+                        <button class="nav-link dropdown-toggle">
+                            <i class="fas fa-user-circle"></i> {{ user.username }}
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="{% url 'accounts:profile' %}"><i class="fas fa-user"></i> Profile</a>
+                            <a href="{% url 'accounts:logout' %}"><i class="fas fa-sign-out"></i> Logout</a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="nav-link">Login</a>
+                    <a href="{% url 'accounts:register_citizen' %}" class="btn btn-primary">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Messages -->
+    {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">
+                    <span>{{ message }}</span>
+                    <button class="close-btn" onclick="this.parentElement.remove()">×</button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>CrimeTrake</h3>
+                    <p>Digital Crime Reporting & Investigation System</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="{% url 'home' %}">Home</a></li>
+                        <li><a href="{% url 'accounts:login' %}">Login</a></li>
+                        <li><a href="{% url 'accounts:register_citizen' %}">Register</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Emergency</h4>
+                    <p>Police: 100</p>
+                    <p>Ambulance: 102</p>
+                    <p>Fire: 101</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 CrimeTrake. BTech Final Year Project.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

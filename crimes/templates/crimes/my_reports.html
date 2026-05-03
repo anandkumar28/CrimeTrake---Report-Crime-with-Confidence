@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+{% block title %}My Reports - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="dashboard-page">
+    <div class="container">
+        <div class="dashboard-header">
+            <h1>My Crime Reports</h1>
+            <a href="{% url 'crimes:report_crime' %}" class="btn btn-primary">
+                <i class="fas fa-file-pen"></i> Report New Crime
+            </a>
+        </div>
+        
+        {% if crimes %}
+            <div class="crimes-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Case ID</th>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Priority</th>
+                            <th>Date Reported</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for crime in crimes %}
+                            <tr>
+                                <td><strong>{{ crime.case_id }}</strong></td>
+                                <td>{{ crime.title }}</td>
+                                <td><span class="badge">{{ crime.get_crime_type_display }}</span></td>
+                                <td><span class="badge badge-{{ crime.status|lower }}">{{ crime.get_status_display }}</span></td>
+                                <td><span class="priority-{{ crime.priority|lower }}">{{ crime.get_priority_display }}</span></td>
+                                <td>{{ crime.created_at|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <a href="{% url 'crimes:case_detail' crime.case_id %}" class="btn-small">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    <a href="{% url 'crimes:upload_evidence' crime.case_id %}" class="btn-small">
+                                        <i class="fas fa-upload"></i> Add Evidence
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="empty-state">
+                <i class="fas fa-folder-open"></i>
+                <h3>No reports yet</h3>
+                <p>You haven't filed any crime reports</p>
+                <a href="{% url 'crimes:report_crime' %}" class="btn btn-primary">
+                    <i class="fas fa-file-pen"></i> Report Your First Crime
+                </a>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.dashboard-page {
+    padding: 3rem 0;
+    background: #F7FAFC;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.crimes-table {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    overflow-x: auto;
+}
+
+.crimes-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.crimes-table th,
+.crimes-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #E2E8F0;
+}
+
+.crimes-table th {
+    font-weight: 600;
+    color: #4A5568;
+    background: #F7FAFC;
+}
+
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    background: #E2E8F0;
+    color: #4A5568;
+}
+
+.badge-filed { background: #FED7AA; color: #7C2D12; }
+.badge-under_investigation { background: #BFDBFE; color: #1E3A8A; }
+.badge-evidence_collected { background: #DDD6FE; color: #5B21B6; }
+.badge-suspect_identified { background: #FEF3C7; color: #92400E; }
+.badge-case_closed { background: #BBF7D0; color: #14532D; }
+.badge-rejected { background: #FECACA; color: #991B1B; }
+
+.priority-low { color: #10B981; }
+.priority-medium { color: #F59E0B; }
+.priority-high { color: #EF4444; }
+.priority-critical { color: #DC2626; font-weight: bold; }
+
+.btn-small {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: 8px;
+    background: #F7FAFC;
+    color: #4A5568;
+    text-decoration: none;
+    transition: all 0.3s;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-right: 0.5rem;
+}
+
+.btn-small:hover {
+    background: #EDF2F7;
+    color: var(--primary);
+}
+
+.empty-state {
+    background: white;
+    padding: 4rem 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    text-align: center;
+    color: #718096;
+}
+
+.empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.3;
+}
+
+.empty-state h3 {
+    color: #2D3748;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 768px) {
+    .dashboard-header {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: flex-start;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload Evidence - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2><i class="fas fa-upload"></i> Upload Evidence</h2>
+                <p>Case ID: <strong>{{ crime.case_id }}</strong></p>
+                <p>{{ crime.title }}</p>
+            </div>
+            
+            <form method="post" enctype="multipart/form-data" class="evidence-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Evidence Type *</label>
+                    {{ form.evidence_type }}
+                </div>
+                
+                <div class="form-group">
+                    <label>File * (Max 10MB)</label>
+                    {{ form.file }}
+                    <small>Supported formats: JPG, PNG, PDF, MP4, AVI, MOV</small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Description</label>
+                    {{ form.description }}
+                </div>
+                
+                {% if form.errors %}
+                    <div class="form-errors">
+                        {% for field, errors in form.errors.items %}
+                            <p><strong>{{ field }}:</strong> {{ errors|first }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload Evidence
+                    </button>
+                    <a href="{% url 'crimes:case_detail' crime.case_id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

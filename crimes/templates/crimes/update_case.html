@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Case - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2><i class="fas fa-edit"></i> Update Case Status</h2>
+                <p>Case ID: <strong>{{ crime.case_id }}</strong></p>
+                <p>{{ crime.title }}</p>
+                <p>Current Status: <span class="badge badge-{{ crime.status|lower }}">{{ crime.get_status_display }}</span></p>
+            </div>
+            
+            <form method="post" class="update-form">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>New Status *</label>
+                    {{ form.new_status }}
+                </div>
+                
+                <div class="form-group">
+                    <label>Update Notes *</label>
+                    {{ form.notes }}
+                </div>
+                
+                {% if form.errors %}
+                    <div class="form-errors">
+                        {% for field, errors in form.errors.items %}
+                            <p><strong>{{ field }}:</strong> {{ errors|first }}</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i> Update Case
+                    </button>
+                    <a href="{% url 'crimes:case_detail' crime.case_id %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Account - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <h2><i class="fas fa-exclamation-triangle"></i> Delete Account</h2>
+                <p>This action cannot be undone</p>
+            </div>
+            
+            <div class="warning-box">
+                <h3>⚠️ Warning</h3>
+                <p>Deleting your account will:</p>
+                <ul>
+                    <li>Permanently delete all your personal information</li>
+                    <li>Remove all your crime reports (if you're a citizen)</li>
+                    <li>Remove your assigned cases (if you're a police officer)</li>
+                    <li>This action cannot be reversed</li>
+                </ul>
+            </div>
+            
+            <form method="post">
+                {% csrf_token %}
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Yes, Delete My Account
+                    </button>
+                    <a href="{% url 'accounts:profile' %}" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.warning-box {
+    background: #FEE2E2;
+    border: 2px solid #EF4444;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+}
+
+.warning-box h3 {
+    color: #DC2626;
+    margin-bottom: 1rem;
+}
+
+.warning-box ul {
+    margin-left: 1.5rem;
+    color: #991B1B;
+}
+
+.btn-danger {
+    background: #EF4444;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #DC2626;
+}
+</style>
+{% endblock %}

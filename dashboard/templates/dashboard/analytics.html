@@ -1,0 +1,239 @@
+{% extends 'base.html' %}
+
+{% block title %}Analytics - CrimeTrake{% endblock %}
+
+{% block content %}
+<div class="analytics-page">
+    <div class="container">
+        <h1><i class="fas fa-chart-line"></i> Crime Analytics & Statistics</h1>
+        
+        <!-- Summary Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                    <i class="fas fa-file-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ total_crimes }}</h3>
+                    <p>Total Crimes</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <div class="stat-info">
+                    <h3>{{ crimes_with_location }}</h3>
+                    <p>With GPS Location</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Crime by Type -->
+        <div class="chart-section">
+            <h2>Crime Distribution by Type</h2>
+            <div class="chart-container">
+                <canvas id="crimeTypeChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Crime by Status -->
+        <div class="chart-section">
+            <h2>Crime Status Distribution</h2>
+            <div class="chart-container">
+                <canvas id="crimeStatusChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Crime by Priority -->
+        <div class="chart-section">
+            <h2>Priority Levels</h2>
+            <div class="chart-container">
+                <canvas id="crimePriorityChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Monthly Trends -->
+        <div class="chart-section">
+            <h2>Monthly Crime Trends</h2>
+            <div class="chart-container">
+                <canvas id="monthlyTrendChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.analytics-page {
+    padding: 3rem 0;
+    background: #F7FAFC;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.stat-info h3 {
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+}
+
+.stat-info p {
+    color: #718096;
+    margin: 0;
+}
+
+.chart-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    margin-bottom: 2rem;
+}
+
+.chart-section h2 {
+    margin-bottom: 1.5rem;
+}
+
+.chart-container {
+    position: relative;
+    height: 400px;
+}
+</style>
+
+<!-- Chart.js Library -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+// Crime by Type Chart
+const crimeTypeData = {
+    labels: [{% for item in crime_by_type %}'{{ item.crime_type }}',{% endfor %}],
+    datasets: [{
+        label: 'Number of Crimes',
+        data: [{% for item in crime_by_type %}{{ item.count }},{% endfor %}],
+        backgroundColor: [
+            '#FF6B35',
+            '#004E89',
+            '#FFD23F',
+            '#06D6A0',
+            '#EF476F',
+            '#8B5CF6',
+            '#F59E0B',
+            '#3B82F6',
+            '#10B981',
+            '#EC4899'
+        ]
+    }]
+};
+
+new Chart(document.getElementById('crimeTypeChart'), {
+    type: 'bar',
+    data: crimeTypeData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+
+// Crime by Status Chart
+const crimeStatusData = {
+    labels: [{% for item in crime_by_status %}'{{ item.status }}',{% endfor %}],
+    datasets: [{
+        data: [{% for item in crime_by_status %}{{ item.count }},{% endfor %}],
+        backgroundColor: [
+            '#FED7AA',
+            '#BFDBFE',
+            '#DDD6FE',
+            '#FEF3C7',
+            '#BBF7D0',
+            '#FECACA'
+        ]
+    }]
+};
+
+new Chart(document.getElementById('crimeStatusChart'), {
+    type: 'doughnut',
+    data: crimeStatusData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Crime by Priority Chart
+const crimePriorityData = {
+    labels: [{% for item in crime_by_priority %}'{{ item.priority }}',{% endfor %}],
+    datasets: [{
+        data: [{% for item in crime_by_priority %}{{ item.count }},{% endfor %}],
+        backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#DC2626']
+    }]
+};
+
+new Chart(document.getElementById('crimePriorityChart'), {
+    type: 'pie',
+    data: crimePriorityData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Monthly Trend Chart
+const monthlyTrendData = {
+    labels: [{% for item in monthly_crimes %}'{{ item.month }}',{% endfor %}],
+    datasets: [{
+        label: 'Crimes per Month',
+        data: [{% for item in monthly_crimes %}{{ item.count }},{% endfor %}],
+        borderColor: '#FF6B35',
+        backgroundColor: 'rgba(255, 107, 53, 0.1)',
+        fill: true,
+        tension: 0.4
+    }]
+};
+
+new Chart(document.getElementById('monthlyTrendChart'), {
+    type: 'line',
+    data: monthlyTrendData,
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: {
+                display: false
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}
