@@ -275,16 +275,16 @@ Geographic visualization of crime locations:
 ## 📸 Screenshots
 
 ### Homepage
-"C:\Users\thaku\OneDrive\Pictures\CrimeTrake_Homepage.png"
+![Homepage](screenshots/CrimeTrake_Homepage.png)
 
 ### Citizen Dashboard
-"C:\Users\thaku\OneDrive\Pictures\Citizen_dashboard.png"
+![Citizen Dashboard](screenshots/Citizen_dashboard.png)
 
 ### Crime Reporting
-"C:\Users\thaku\OneDrive\Pictures\crime_reporting.png"
+![Crime Reporting](screenshots/crime_reporting.png)
 
 ### Crime Map
-"C:\Users\thaku\OneDrive\Pictures\crime_map.png"
+![Crime Map](screenshots/crime_map.png)
 
 ---
 
@@ -395,7 +395,7 @@ This project is licensed under the MIT License - see [LICENSE](LICENSE) file for
 
 For questions or support:
 - Email: thakur.anand15154@gmail.com
-- GitHub Issues: [Create Issue](https://github.com/anandkumar28/crimetrake/issues)
+- GitHub Issues: (https://github.com/anandkumar28/crimetrake/issues)
 
 ---
 
